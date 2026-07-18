@@ -1,0 +1,26 @@
+{
+  "name": "rainbowgoldserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AkankshaDodamani/rainbowgoldServer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AkankshaDodamani/rainbowgoldServer/issues"
+  },
+  "homepage": "https://github.com/AkankshaDodamani/rainbowgoldServer#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.4",
+    "nodemon": "^3.1.14"
+  }
+}
