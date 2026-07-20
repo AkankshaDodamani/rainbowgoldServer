@@ -1,6 +1,6 @@
 import express from "express";
 import connectDB from "./dbconfig/initDB.js";
-import routes from "./routes/User.js";
+import routes from "./routes/index.js";
 import { configDotenv } from "dotenv";
 
 let PORT = 5000;
@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", routes);
+routes(app);
 
 app.get('/', (req, res) => {
   res.send('Chocolate shop API is running...');
