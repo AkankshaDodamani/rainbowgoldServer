@@ -42,7 +42,7 @@ export const getAllBrands = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const brands = await Brand.find({});
+    const brands = await Brand.find({isDeleted: false});
     
     response.success = true;
     response.message = "Brands fetched successfully";
@@ -83,9 +83,10 @@ export const updateBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
+    const brandname = req.params.brandname;
 
-    const updatedBrand = await Brand.findByIdAndUpdate(
-      req.params.id,
+    const updatedBrand = await Brand.findOneAndUpdate(
+      { brandname: brandname },
       req.body,
       { new: true, runValidators: true }
     );
@@ -111,9 +112,17 @@ export const deleteBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const deletedBrand = await Brand.findByIdAndDelete(req.params.id);
+    const brand = await Brand.findOne({ brandname: req.params.brandname });
+
+    const deletedBrand = await Brand.findByIdAndUpdate(
+      brand._id,
+      { isDeleted: true },
+      { new: true }
+    );
 
     if (!deletedBrand) {
+      response.success = false;
+      response.message = "Failed to delete brand";
       response.errMessage = "Brand not found";
       return res.status(404).json(response);
     }
@@ -123,6 +132,7 @@ export const deleteBrand = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
+    response.success = false;
     response.message = "Failed to delete brand";
     response.errMessage = error.message;
     return res.status(500).json(response);

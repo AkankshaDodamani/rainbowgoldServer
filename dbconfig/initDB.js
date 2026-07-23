@@ -3,7 +3,12 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     let dbUrl;
-    if (process.env.NODE_ENV === "dev") dbUrl = process.env.DB_DEV_URL;
+    if (process.env.NODE_ENV === "dev") {
+      dbUrl = process.env.DB_DEV_URL;
+    } else if (process.env.NODE_ENV === "prod") {
+      dbUrl = process.env.DB_PROD_URL;
+    }
+
     const connection = mongoose.connection;
     connection.on("connected", () => {
       console.log("Successfully connected to DB");
