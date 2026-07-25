@@ -34,3 +34,29 @@ export const CreateContact = async (req, res) => {
         return res.status(500).json(response);
     }
 }
+
+export const GetAllContact = async (req, res) => {
+    let response = { success: false, message: "", errMessage: "" };
+
+    try {
+        const contacts = await Contact.find();
+        if (contacts.length > 0) {
+            response.success = true;
+            response.message = "Contacts retrieved successfully!!";
+            response.Count = contacts.length;
+            response.data = contacts;
+            return res.status(200).json(response);
+        } else {
+            response.success = false;
+            response.message = "No contacts found!!";
+            response.errMessage = "";
+            return res.status(404).json(response);
+        }
+    }
+    catch (error) {
+        response.success = false;
+        response.message = "Failed to retrieve contacts!!";
+        response.errMessage = error.message;
+        return res.status(500).json(response);
+    }
+}
