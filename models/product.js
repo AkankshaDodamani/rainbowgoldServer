@@ -11,23 +11,23 @@ const productSchema = new mongoose.Schema({
     },
     productprice: {
         type: Number,
-        required: true
+        required: false
     },
     flavor: {
         type: String,
-        required: true
+        required: false
     },
     weight: {
         type: String,
-        required: true
+        required: false
     },
     packagingtype: {
         type: String,
-        required: true
+        required: false
     },
     pieces: {
         type: Number,
-        required: true
+        required: false
     },
     brandid: {
         type: mongoose.Schema.Types.ObjectId,
