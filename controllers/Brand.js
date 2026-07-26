@@ -92,7 +92,7 @@ export const updateBrand = async (req, res) => {
 
   try {
     // 4. Look for the slug in the URL parameters instead of brandname
-    const currentSlug = req.params.slug; 
+    const currentSlug = req.query.slug; 
 
     // 5. If the request body includes a new brandname, generate a new slug for it
     if (req.body.brandname) {
@@ -131,7 +131,7 @@ export const deleteBrand = async (req, res) => {
 
   try {
     // 7. Find the brand using the slug from the URL
-    const brand = await Brand.findOne({ slug: req.params.slug });
+    const brand = await Brand.findOne({ slug: req.query.slug });
 
     if (!brand) {
       response.success = false;

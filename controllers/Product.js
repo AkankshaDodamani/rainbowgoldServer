@@ -1,4 +1,5 @@
 import express from 'express';
+import slugify from 'slugify';
 import Product from '../models/Product.js';
 import Brand from '../models/Brand.js';
 
@@ -17,10 +18,17 @@ export const CreateProduct = async (req, res) => {
             return res.status(400).json(response);
         }
 
+        const generateSlug = slugify(body.productname, {
+            lower: true,
+            strict: true,
+            trim: true,
+        });
+
         const brandId = await Brand.findOne({ brandname: body.brandname });
 
         const newProduct = new Product({
             productname: body.productname,
+            slug: generateSlug,
             productphotolink: body.productphotolink,
             productprice: body.productprice,
             flavor: body.flavor,
@@ -53,8 +61,8 @@ export const GetAllProductsByBrand = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };
 
     try {
-        const brandName = req.params.brandname;
-        const brand = await Brand.findOne({ brandname: brandName });
+        const brandSlug = req.query.slug;
+        const brand = await Brand.findOne({ slug: brandSlug, isDeleted: false });
 
         const products = await Product.find({ brandid: brand._id, isDeleted: false });
         if (!products || products.length === 0) {
@@ -82,11 +90,20 @@ export const UpdateProduct = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };
 
     try {
-        const productname = req.params.productname.split('-').join(' ');
+        const currentSlug = req.query.slug;
         const body = req.body;
+
+        if(body.productname){
+            req.body.slug = slugify(body.productname, {
+                lower: true,
+                strict: true,
+                trim: true,
+            });
+        }
 
         const updateProductDetails = ({
             productname: body.productname,
+            slug: req.body.slug,
             productphotolink: body.productphotolink,
             productprice: body.productprice,
             flavor: body.flavor,
@@ -94,7 +111,7 @@ export const UpdateProduct = async (req, res) => {
             packagingtype: body.packagingtype,
             pieces: body.pieces
         });
-        const updateProduct = await Product.findOneAndUpdate({ productname: productname }, updateProductDetails, { returnDocument: 'after' }, { isDeleted: false });
+        const updateProduct = await Product.findOneAndUpdate({ slug: currentSlug }, updateProductDetails, { returnDocument: 'after' }, { isDeleted: false });
 
         if (!updateProduct) {
             response.success = false;
@@ -120,7 +137,7 @@ export const DeleteProduct = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };
 
     try{
-        const product = await Product.findOne({ productname: req.params.productname.split('-').join(' ') });
+        const product = await Product.findOne({ slug: req.query.slug });
 
         const deleteProduct = await Product.findByIdAndUpdate(product._id, { isDeleted: true }, { new: true });
         if (!deleteProduct) {
