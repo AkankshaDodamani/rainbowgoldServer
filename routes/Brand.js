@@ -4,6 +4,6 @@ import  { createBrand, getAllBrands, updateBrand, deleteBrand } from '../control
 const router  = express.Router();
 router.post('/createBrand', createBrand);
 router.get('/getAllBrands', getAllBrands);
-router.put('/updateBrand/:brandname', updateBrand);
-router.put('/deleteBrand/:brandname', deleteBrand);
+router.put('/updateBrand/:slug', updateBrand);
+router.put('/deleteBrand/:slug', deleteBrand);
 export default router;

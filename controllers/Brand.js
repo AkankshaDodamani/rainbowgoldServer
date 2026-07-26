@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import Brand from "../models/Brand.js";
+import slugify from "slugify"; 
 
 //create brand
 export const createBrand = async (req, res) => {
@@ -16,13 +17,20 @@ export const createBrand = async (req, res) => {
       return res.status(400).json(response);
     }
 
-    // Create and save the new brand
+    // 2. Generate the slug from the brandname
+    const generatedSlug = slugify(brandname, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+
+    // Create and save the new brand, including the slug
     const brand = new Brand({
       brandname,
+      slug: generatedSlug, // 3. Save the slug to the database
       brandlogo,
       numberofproducts,
     });
-
     const savedBrand = await brand.save();
 
     // Set success response
@@ -83,10 +91,20 @@ export const updateBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const brandname = req.params.brandname;
+    // 4. Look for the slug in the URL parameters instead of brandname
+    const currentSlug = req.params.slug; 
+
+    // 5. If the request body includes a new brandname, generate a new slug for it
+    if (req.body.brandname) {
+      req.body.slug = slugify(req.body.brandname, {
+        lower: true,
+        strict: true,
+        trim: true,
+      });
+    }
 
     const updatedBrand = await Brand.findOneAndUpdate(
-      { brandname: brandname },
+      { slug: currentSlug }, // 6. Query the database using the slug
       req.body,
       { new: true, runValidators: true }
     );
@@ -112,20 +130,21 @@ export const deleteBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const brand = await Brand.findOne({ brandname: req.params.brandname });
+    // 7. Find the brand using the slug from the URL
+    const brand = await Brand.findOne({ slug: req.params.slug });
+
+    if (!brand) {
+      response.success = false;
+      response.message = "Failed to delete brand";
+      response.errMessage = "Brand not found";
+      return res.status(404).json(response);
+    }
 
     const deletedBrand = await Brand.findByIdAndUpdate(
       brand._id,
       { isDeleted: true },
       { new: true }
     );
-
-    if (!deletedBrand) {
-      response.success = false;
-      response.message = "Failed to delete brand";
-      response.errMessage = "Brand not found";
-      return res.status(404).json(response);
-    }
 
     response.success = true;
     response.message = "Brand deleted successfully";
