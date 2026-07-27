@@ -64,28 +64,29 @@ export const getAllBrands = async (req, res) => {
   }
 };
 
-// export const getBrandById = async (req, res) => {
-//   let response = { success: false, message: "", errMessage: "" };
+export const getBrandBySlug = async (req, res) => {
+  let response = { success: false, message: "", errMessage: "" };
 
-//   try {
-//     const brand = await Brand.findById(req.params.id);
+  try {
+    const { slug } = req.query;
+    const brand = await Brand.findOne({ slug });
 
-//     if (!brand) {
-//       response.errMessage = "Brand not found";
-//       return res.status(404).json(response);
-//     }
+    if (!brand) {
+      response.errMessage = "Brand not found";
+      return res.status(404).json(response);
+    }
 
-//     response.success = true;
-//     response.message = "Brand fetched successfully";
-//     response.data = brand;
+    response.success = true;
+    response.message = "Brand fetched successfully";
+    response.data = brand;
 
-//     return res.status(200).json(response);
-//   } catch (error) {
-//     response.message = "Error fetching brand";
-//     response.errMessage = error.message;
-//     return res.status(500).json(response);
-//   }
-// };
+    return res.status(200).json(response);
+  } catch (error) {
+    response.message = "Error fetching brand";
+    response.errMessage = error.message;
+    return res.status(500).json(response);
+  }
+};
 
 export const updateBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
