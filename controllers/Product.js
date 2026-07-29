@@ -67,12 +67,6 @@ export const GetAllProductsByBrand = async (req, res) => {
         const brand = await Brand.findOne({ slug: brandSlug, isDeleted: false });
 
         const products = await Product.find({ brandid: brand._id, isDeleted: false });
-        if (!products || products.length === 0) {
-            response.success = false;
-            response.message = "No products found for the specified brand";
-            response.errMessage = "No products found";
-            return res.status(404).json(response);
-        }
         response.success = true;
         response.message = "Products found successfully";
         response.count = products.length;
