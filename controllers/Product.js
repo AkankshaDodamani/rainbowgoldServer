@@ -1,5 +1,6 @@
 import express from 'express';
 import slugify from 'slugify';
+import mongoose from "mongoose";
 import Product from '../models/Product.js';
 import Brand from '../models/Brand.js';
 
@@ -18,17 +19,18 @@ export const CreateProduct = async (req, res) => {
             return res.status(400).json(response);
         }
 
-        const generateSlug = slugify(body.productname, {
-            lower: true,
-            strict: true,
-            trim: true,
-        });
+        // const generateSlug = slugify(body.productname, {
+        //     lower: true,
+        //     strict: true,
+        //     trim: true,
+        // });
+
 
         const brandId = await Brand.findOne({ brandname: body.brandname });
 
         const newProduct = new Product({
             productname: body.productname,
-            slug: generateSlug,
+            slug: generateUniqueSlug(body.productname),
             productphotolink: body.productphotolink,
             productprice: body.productprice,
             flavor: body.flavor,
@@ -94,11 +96,7 @@ export const UpdateProduct = async (req, res) => {
         const body = req.body;
 
         if(body.productname){
-            req.body.slug = slugify(body.productname, {
-                lower: true,
-                strict: true,
-                trim: true,
-            });
+            req.body.slug = generateUniqueSlug(body.productname);
         }
 
         const updateProductDetails = ({
@@ -157,3 +155,15 @@ export const DeleteProduct = async (req, res) => {
         return res.status(500).json(response);
     }
 }
+
+    const generateUniqueSlug = (productName) => {
+        const slug = slugify(productName, {
+            lower: true,
+            strict: true,
+            trim: true,
+        });
+
+        const unique = new mongoose.Types.ObjectId().toString().slice(-6);
+
+        return `${unique}-${slug}-${unique}`;
+    };
