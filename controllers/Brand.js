@@ -1,6 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import Brand from "../models/Brand.js";
+import Brand from "../models/brand.js";
 import slugify from "slugify"; 
 
 //create brand

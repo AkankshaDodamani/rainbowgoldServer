@@ -1,5 +1,5 @@
 import express from 'express';
-import Contact from '../models/Contact.js';
+import Contact from '../models/contact.js';
 
 export const CreateContact = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };

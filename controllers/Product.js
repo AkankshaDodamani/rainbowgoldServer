@@ -1,8 +1,8 @@
 import express from "express";
 import slugify from "slugify";
 import mongoose from "mongoose";
-import Product from "../models/Product.js";
-import Brand from "../models/Brand.js";
+import Product from "../models/product.js";
+import Brand from "../models/brand.js";
 
 export const CreateProduct = async (req, res) => {
     let response = {
