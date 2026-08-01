@@ -1,4 +1,4 @@
-import userRouter from "./user.js";
+import userRouter from "./User.js";
 import contactRouter from "./contact.js";
 import productRouter from "./product.js";
 import brandRouter from "./Brand.js";
