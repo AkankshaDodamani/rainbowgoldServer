@@ -39,6 +39,11 @@ const productSchema = new mongoose.Schema({
     ref: "Brand",
     required: true,
   },
+  brandname: {
+    type: String,
+    ref: "Brand",
+    required: true,
+  },
   isDeleted: {
     type: Boolean,
     default: false,
