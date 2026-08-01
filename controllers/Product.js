@@ -1,33 +1,44 @@
-import express from 'express';
-import slugify from 'slugify';
+import express from "express";
+import slugify from "slugify";
 import mongoose from "mongoose";
-import Product from '../models/Product.js';
-import Brand from '../models/Brand.js';
+import Product from "../models/Product.js";
+import Brand from "../models/Brand.js";
 
-// create product
 export const CreateProduct = async (req, res) => {
-    let response = { success: false, message: "", errMessage: "" };
+    let response = {
+        success: false,
+        message: "",
+        errMessage: ""
+    };
 
-    try{
+    try {
         const body = req.body;
 
-        const productExists = await Product.findOne({ productname: body.productname });
+        // Check if product already exists for the same brand
+        const productExists = await Product.findOne({
+            productname: body.productname,
+            brandname: body.brandname
+        });
+
         if (productExists) {
-            response.success = false;
             response.message = "Product already exists";
-            response.errMessage = "Product with the same name already exists";
+            response.errMessage = "Product with the same name already exists for this brand";
             return res.status(400).json(response);
         }
 
-        // const generateSlug = slugify(body.productname, {
-        //     lower: true,
-        //     strict: true,
-        //     trim: true,
-        // });
+        // Find Brand
+        const brand = await Brand.findOne({
+            brandname: body.brandname,
+            isDeleted: false
+        });
 
+        if (!brand) {
+            response.message = "Brand not found";
+            response.errMessage = `Brand '${body.brandname}' does not exist`;
+            return res.status(404).json(response);
+        }
 
-        const brandId = await Brand.findOne({ brandname: body.brandname });
-
+        // Create Product
         const newProduct = new Product({
             productname: body.productname,
             slug: generateUniqueSlug(body.productname),
@@ -37,26 +48,28 @@ export const CreateProduct = async (req, res) => {
             weight: body.weight,
             packagingtype: body.packagingtype,
             pieces: body.pieces,
-            brandid: brandId._id
+            brandid: brand._id,
+            brandname: brand.brandname,
+            isDeleted: body.isDeleted ?? false,
+            isNewLaunch: body.isNewLaunch ?? false
         });
-        const saveProduct = await newProduct.save();
-        if(!saveProduct){
-            response.success = false;
-            response.message = "Failed to add product!!";
-            response.errMessage = "Error occurred while saving the product";
-            return res.status(400).json(response);
-        }
+
+        const savedProduct = await newProduct.save();
+
         response.success = true;
-        response.message = "Product added successfully!!";
-        return res.status(200).json(response);
-    }
-    catch (error) {
+        response.message = "Product added successfully";
+        response.data = savedProduct;
+
+        return res.status(201).json(response);
+
+    } catch (error) {
         response.success = false;
-        response.message = "Failed to add product!!";
+        response.message = "Failed to add product";
         response.errMessage = error.message;
+
         return res.status(500).json(response);
     }
-}
+};
 
 // get all products
 export const GetAllProductsByBrand = async (req, res) => {
