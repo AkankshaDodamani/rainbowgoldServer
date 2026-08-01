@@ -9,6 +9,5 @@ const initRoutes = (app) => {
     app.use("/api/product", productRouter);
     app.use("/api/brand", brandRouter);
 }
-console.log("in index route");
 
 export default initRoutes;
