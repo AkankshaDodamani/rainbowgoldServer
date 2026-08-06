@@ -34,8 +34,6 @@ const Login = async (req, res) => {
       return res.status(403).json(response);
     }
 
-    console.log("User authenticated successfully:", user.username); // Log successful authentication
-
     // Generate Tokens
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
