@@ -142,9 +142,11 @@ export const DeleteProduct = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };
 
     try{
+        console.log("inside delete product controller", req);
         const product = await Product.findOne({ slug: req.query.slug });
 
         const deleteProduct = await Product.findByIdAndUpdate(product._id, { isDeleted: true }, { new: true });
+    
         if (!deleteProduct) {
             response.success = false;
             response.message = "Failed to delete product!!";

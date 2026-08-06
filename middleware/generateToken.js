@@ -31,19 +31,17 @@ export const verifyToken = (req, res, next) => {
   let response = { success: false, message: "", errMessage: "" };
   let token;
 
-  // Check if the Authorization header exists and starts with "Bearer"
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      // Extract the token (Format: "Bearer <token>")
+      console.log("Request headers", req.headers);
+      console.log("Authorization header found:", req.headers.authorization);
       token = req.headers.authorization.split(" ")[1];
 
-      // Verify the token using your specific ACCESS_TOKEN_SECRET
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-      // Ensure the user's access hasn't been revoked
       if (!decoded.hasAccess) {
         response.success = false;
         response.message = "Access denied";
