@@ -71,7 +71,7 @@ export const CreateProduct = async (req, res) => {
     }
 };
 
-// get all products
+// get all products by brands
 export const GetAllProductsByBrand = async (req, res) => {
     let response = { success: false, message: "", errMessage: "" };
 
@@ -165,14 +165,39 @@ export const DeleteProduct = async (req, res) => {
     }
 }
 
-    const generateUniqueSlug = (productName) => {
-        const slug = slugify(productName, {
-            lower: true,
-            strict: true,
-            trim: true,
-        });
+// get all products
+export const GetAllProducts = async (req, res) => {
+  let response = { success: false, message: "", errMessage: "" };
 
-        const unique = new mongoose.Types.ObjectId().toString().slice(-6);
+  try {
+    const products = await Product.find({ isDeleted: false });
+    if (!products) {
+      response.success = false;
+      response.message = "Failed to fetch products!!";
+      response.errMessage = "No products found";
+      return res.status(400).json(response);
+    }
+    response.success = true;
+    response.message = "Products fetched successfully!!";
+    response.count = products.length;
+    response.data = products;
+    return res.status(200).json(response);
+  } catch (error) {
+    response.success = false;
+    response.message = "Failed to fetch products!!";
+    response.errMessage = error.message;
+    return res.status(500).json(response);
+  }
+};
 
-        return `${unique}-${slug}-${unique}`;
-    };
+const generateUniqueSlug = (productName) => {
+      const slug = slugify(productName, {
+        lower: true,
+        strict: true,
+        trim: true,
+      });
+
+      const unique = new mongoose.Types.ObjectId().toString().slice(-6);
+
+      return `${unique}-${slug}-${unique}`;
+};

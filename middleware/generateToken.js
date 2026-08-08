@@ -36,8 +36,6 @@ export const verifyToken = (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      console.log("Request headers", req.headers);
-      console.log("Authorization header found:", req.headers.authorization);
       token = req.headers.authorization.split(" ")[1];
 
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
