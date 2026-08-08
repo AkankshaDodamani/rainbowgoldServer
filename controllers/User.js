@@ -1,7 +1,7 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
-import {createAccessToken} from "../middleware/generateToken.js";
-import {createRefreshToken} from "../middleware/generateToken.js";
+import jwt from "jsonwebtoken"; // Make sure to import this for the refresh function
+import { createAccessToken, createRefreshToken } from "../middleware/generateToken.js";
 
 const Login = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
@@ -50,7 +50,7 @@ const Login = async (req, res) => {
         hasAccess: user.hasAccess
       }
     };
-    response.accessToken = accessToken; // Fixed typo here
+    response.accessToken = accessToken; 
     response.refreshToken = refreshToken;
 
     return res.status(200).json(response);
@@ -59,6 +59,40 @@ const Login = async (req, res) => {
     response.message = "Failed to Login!!";
     response.errMessage = error.message;
     return res.status(500).json(response);
+  }
+};
+
+// ==========================================
+// NEW REFRESH TOKEN CONTROLLER
+// ==========================================
+export const refreshToken = (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: "No refresh token provided" });
+  }
+
+  try {
+    // 1. Verify the refresh token
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    // 2. If valid, issue a new 15-minute access token
+    const newAccessToken = createAccessToken({
+      _id: decoded.id, // Maps to user._id in your generator
+      username: decoded.username,
+      hasAccess: decoded.hasAccess,
+    });
+
+    return res.status(200).json({ 
+      success: true, 
+      accessToken: newAccessToken 
+    });
+
+  } catch (error) {
+    return res.status(403).json({ 
+      success: false, 
+      errMessage: "Refresh token is invalid or expired" 
+    });
   }
 };
 
