@@ -3,6 +3,7 @@ import slugify from "slugify";
 import mongoose from "mongoose";
 import Product from "../models/product.js";
 import Brand from "../models/brand.js";
+import uploadToCloudinary from "../middleware/cloudinaryUpload.js";
 
 export const CreateProduct = async (req, res) => {
     let response = {
@@ -12,7 +13,9 @@ export const CreateProduct = async (req, res) => {
     };
 
     try {
-        const body = req.body.newProduct;
+        let productUrl;
+        const body = req.body;
+        const productPhoto = req.file;
 
         // Check if product already exists for the same brand
         const productExists = await Product.findOne({
@@ -38,11 +41,18 @@ export const CreateProduct = async (req, res) => {
             return res.status(404).json(response);
         }
 
+        if (productPhoto != null){
+            const normalizedBrand = req.body.brandname.trim().replace(/\s+/g, '_');
+            const folderPath = `Rainbow-gold/${normalizedBrand}`;
+            const uploadImage = await uploadToCloudinary(productPhoto.buffer, folderPath);
+            productUrl = uploadImage.secure_url;
+        }
+
         // Create Product
         const newProduct = new Product({
             productname: body.productname,
             slug: generateUniqueSlug(body.productname),
-            productphotolink: body.productphotolink,
+            productphotolink: productUrl,
             productprice: body.productprice,
             flavor: body.flavor,
             weight: body.weight,

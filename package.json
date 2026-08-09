@@ -29,7 +29,8 @@
     "mongodb": "^7.5.0",
     "mongoose": "^9.7.4",
     "multer": "^2.2.0",
-    "slugify": "^1.6.9"
+    "slugify": "^1.6.9",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "concurrently": "^10.0.4",
