@@ -12,14 +12,14 @@ export const CreateProduct = async (req, res) => {
     };
 
     try {
-        const body = req.body;
+        const body = req.body.newProduct;
 
         // Check if product already exists for the same brand
         const productExists = await Product.findOne({
             productname: body.productname,
             brandname: body.brandname
         });
-
+        
         if (productExists) {
             response.message = "Product already exists";
             response.errMessage = "Product with the same name already exists for this brand";
