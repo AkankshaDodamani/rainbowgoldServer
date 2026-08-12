@@ -2,13 +2,16 @@ import express from "express";
 import bcrypt from "bcrypt";
 import Brand from "../models/brand.js";
 import slugify from "slugify"; 
+import uploadToCloudinary from "../middleware/cloudinaryUpload.js";
 
 //create brand
 export const createBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const { brandname, brandlogo, numberofproducts } = req.body;
+    let brandLogoUrl = "";
+    console.log("Request body:", req.body);
+    const { brandname, numberofproducts } = req.body;
 
     // Check if brand already exists
     const brandExists = await Brand.findOne({ brandname });
@@ -24,11 +27,18 @@ export const createBrand = async (req, res) => {
       trim: true,
     });
 
+    if (req.file) {
+      brandLogoUrl = await uploadToCloudinary(
+        req.file.path,
+        "Rainbow-gold"
+      );
+    }
+
     // Create and save the new brand, including the slug
     const brand = new Brand({
       brandname,
       slug: generatedSlug, // 3. Save the slug to the database
-      brandlogo,
+      brandlogo: brandLogoUrl,
       numberofproducts,
     });
     const savedBrand = await brand.save();

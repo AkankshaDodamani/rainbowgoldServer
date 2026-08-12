@@ -42,7 +42,7 @@ export const CreateProduct = async (req, res) => {
         }
 
         if (productPhoto != null){
-            const normalizedBrand = req.body.brandname.trim().replace(/\s+/g, '_');
+            const normalizedBrand = req.body.brandname.trim().replace(/[^a-zA-Z0-9]/g, "");
             const folderPath = `Rainbow-gold/${normalizedBrand}`;
             const uploadImage = await uploadToCloudinary(productPhoto.buffer, folderPath);
             productUrl = uploadImage.secure_url;
