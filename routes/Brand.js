@@ -7,6 +7,6 @@ const router  = express.Router();
 router.post('/createBrand',verifyToken, upload.single("brandlogo"), createBrand);
 router.get('/getAllBrands', getAllBrands);
 router.get('/getBrandBySlug', getBrandBySlug);
-router.put('/updateBrand', verifyToken, updateBrand);
+router.put("/updateBrand", verifyToken, upload.single("brandlogo"), updateBrand);
 router.put('/deleteBrand', verifyToken, deleteBrand);
 export default router;

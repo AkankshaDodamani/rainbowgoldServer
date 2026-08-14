@@ -102,21 +102,35 @@ export const updateBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    // 4. Look for the slug in the URL parameters instead of brandname
     const currentSlug = req.query.slug; 
+    let updateData = { ...req.body }; // Create a copy of the request body
 
-    // 5. If the request body includes a new brandname, generate a new slug for it
-    if (req.body.brandname) {
-      req.body.slug = slugify(req.body.brandname, {
+    if (updateData.slug) {
+        delete updateData.slug;
+    }
+
+    // 1. If the brand name changed, generate a new slug so URLs stay accurate
+    if (updateData.brandname) {
+      updateData.slug = slugify(updateData.brandname, {
         lower: true,
         strict: true,
         trim: true,
       });
     }
 
+    // 2. NEW: Handle Cloudinary image upload for updates
+    if (req.file) {
+      const brandLogoUrl = await uploadToCloudinary(
+        req.file.path,
+        "Rainbow-gold"
+      );
+      updateData.brandlogo = brandLogoUrl; // Add the secure URL to the update object
+    }
+
+    // 3. Update the database using the new updateData object
     const updatedBrand = await Brand.findOneAndUpdate(
-      { slug: currentSlug }, // 6. Query the database using the slug
-      req.body,
+      { slug: currentSlug }, 
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -131,6 +145,7 @@ export const updateBrand = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
+    console.error("Update Brand Error:", error);
     response.message = "Failed to update brand";
     response.errMessage = error.message;
     return res.status(500).json(response);
