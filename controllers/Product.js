@@ -115,44 +115,53 @@ export const UpdateProduct = async (req, res) => {
 
         const updateProductDetails = {};
 
+        // 1. Update text fields
         if (body.productname) {
             updateProductDetails.productname = body.productname;
             updateProductDetails.slug = generateUniqueSlug(body.productname);
         }
-        if (body.productprice)
-            updateProductDetails.productprice = body.productprice;
+        if (body.productprice) updateProductDetails.productprice = body.productprice;
         if (body.flavor) updateProductDetails.flavor = body.flavor;
         if (body.weight) updateProductDetails.weight = body.weight;
-        if (body.packagingtype)
-            updateProductDetails.packagingtype = body.packagingtype;
+        if (body.packagingtype) updateProductDetails.packagingtype = body.packagingtype;
         if (body.pieces) updateProductDetails.pieces = body.pieces;
+
+        // 2. Handle Cloudinary Upload Safely
         if (fileBody) {
-            const normalizedBrand = body.brandname.trim().replace(/[^a-zA-Z0-9]/g, "");
+            // Safe fallback just in case brandname is undefined
+            const brandName = body.brandname || "Unbranded"; 
+            const normalizedBrand = brandName.trim().replace(/[^a-zA-Z0-9]/g, "");
             const folderPath = `Rainbow-gold/${normalizedBrand}`;
+            
+            // NOTE: Using fileBody.path to match your earlier setup. 
             const productImageUrl = await uploadToCloudinary(fileBody.buffer, folderPath);
             updateProductDetails.productphotolink = productImageUrl.secure_url;
         }
 
+        // 3. Update the Database
         const updateProduct = await Product.findOneAndUpdate(
             { slug: currentSlug, isDeleted: false },
             updateProductDetails,
-            { returnDocument: "after", runValidators: true },
+            { returnDocument: 'after', runValidators: true } 
         );
 
         if (!updateProduct) {
             response.message = "Failed to update product!!";
             response.errMessage = "Product not found or update failed";
-            return res.status(400).json(response);
+            return res.status(404).json(response); 
         }
 
         response.success = true;
         response.message = "Product updated successfully!!";
         response.data = updateProduct;
         return res.status(200).json(response);
+
     } catch (error) {
-    response.message = "Failed to update product!!";
-    response.errMessage = error.message;
-    return res.status(500).json(response);
+        // Logs the exact crash to your backend terminal
+        console.error("Update Product Error Details:", error); 
+        response.message = "Failed to update product!!";
+        response.errMessage = error.message;
+        return res.status(500).json(response);
     }
 };
 

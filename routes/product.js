@@ -6,7 +6,7 @@ import upload from '../middleware/uploadImage.js';
 const router = express.Router();
 router.post('/createProduct', verifyToken, upload.single('productphotolink'), CreateProduct);
 router.get('/getAllProductsByBrand', GetAllProductsByBrand);
-router.put('/updateProduct',verifyToken, UpdateProduct);
+router.put("/updateProduct", verifyToken, upload.single('productphotolink'), UpdateProduct);
 router.put('/deleteProduct',verifyToken, DeleteProduct);
 router.get('/getAllProducts', GetAllProducts);
 export default router;
