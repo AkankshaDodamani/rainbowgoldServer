@@ -111,41 +111,50 @@ export const UpdateProduct = async (req, res) => {
     try {
         const currentSlug = req.query.slug;
         const body = req.body;
+        const fileBody = req.file;
 
-        if(body.productname){
-            req.body.slug = generateUniqueSlug(body.productname);
+        const updateProductDetails = {};
+
+        if (body.productname) {
+            updateProductDetails.productname = body.productname;
+            updateProductDetails.slug = generateUniqueSlug(body.productname);
+        }
+        if (body.productprice)
+            updateProductDetails.productprice = body.productprice;
+        if (body.flavor) updateProductDetails.flavor = body.flavor;
+        if (body.weight) updateProductDetails.weight = body.weight;
+        if (body.packagingtype)
+            updateProductDetails.packagingtype = body.packagingtype;
+        if (body.pieces) updateProductDetails.pieces = body.pieces;
+        if (fileBody) {
+            const normalizedBrand = body.brandname.trim().replace(/[^a-zA-Z0-9]/g, "");
+            const folderPath = `Rainbow-gold/${normalizedBrand}`;
+            const productImageUrl = await uploadToCloudinary(fileBody.buffer, folderPath);
+            updateProductDetails.productphotolink = productImageUrl.secure_url;
         }
 
-        const updateProductDetails = ({
-            productname: body.productname,
-            slug: req.body.slug,
-            productphotolink: body.productphotolink,
-            productprice: body.productprice,
-            flavor: body.flavor,
-            weight: body.weight,
-            packagingtype: body.packagingtype,
-            pieces: body.pieces
-        });
-        const updateProduct = await Product.findOneAndUpdate({ slug: currentSlug }, updateProductDetails, { returnDocument: 'after' }, { isDeleted: false });
+        const updateProduct = await Product.findOneAndUpdate(
+            { slug: currentSlug, isDeleted: false },
+            updateProductDetails,
+            { returnDocument: "after", runValidators: true },
+        );
 
         if (!updateProduct) {
-            response.success = false;
             response.message = "Failed to update product!!";
             response.errMessage = "Product not found or update failed";
             return res.status(400).json(response);
         }
+
         response.success = true;
         response.message = "Product updated successfully!!";
         response.data = updateProduct;
         return res.status(200).json(response);
+    } catch (error) {
+    response.message = "Failed to update product!!";
+    response.errMessage = error.message;
+    return res.status(500).json(response);
     }
-    catch (error) {
-        response.success = false;
-        response.message = "Failed to update product!!";
-        response.errMessage = error.message;
-        return res.status(500).json(response);
-    }
-}
+};
 
 // delete product
 export const DeleteProduct = async (req, res) => {
@@ -201,13 +210,13 @@ export const GetAllProducts = async (req, res) => {
 };
 
 const generateUniqueSlug = (productName) => {
-      const slug = slugify(productName, {
-        lower: true,
-        strict: true,
-        trim: true,
-      });
+  const slug = slugify(productName, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
 
-      const unique = new mongoose.Types.ObjectId().toString().slice(-6);
+  const unique = new mongoose.Types.ObjectId().toString().slice(-6);
 
-      return `${unique}-${slug}-${unique}`;
+  return `${unique}-${slug}-${unique}`;
 };
