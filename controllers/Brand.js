@@ -3,50 +3,44 @@ import bcrypt from "bcrypt";
 import Brand from "../models/brand.js";
 import slugify from "slugify"; 
 import uploadToCloudinary from "../middleware/cloudinaryUpload.js";
+import mongoose from "mongoose";
 
 //create brand
 export const createBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    let brandLogoUrl = "";
-    console.log("Request body:", req.body);
-    const { brandname, numberofproducts } = req.body;
+    let brandLogoUrl;
+    const body = req.body;
+    const brandPhoto = req.file;
 
     // Check if brand already exists
-    const brandExists = await Brand.findOne({ brandname });
+    const brandExists = await Brand.findOne({ brandname: body.brandname });
     if (brandExists) {
       response.errMessage = "A brand with this name already exists";
       return res.status(400).json(response);
     }
 
-    // 2. Generate the slug from the brandname
-    const generatedSlug = slugify(brandname, {
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-
-    if (req.file) {
-      brandLogoUrl = await uploadToCloudinary(
-        req.file.path,
-        "Rainbow-gold"
-      );
+    if (brandPhoto != null) {
+      const normalizedBrand = req.body.brandname.trim().replace(/[^a-zA-Z0-9]/g, "");
+      const folderPath = `Rainbow-gold/${normalizedBrand}`;
+      const uploadImage = await uploadToCloudinary(brandPhoto.buffer, folderPath);
+      brandLogoUrl = uploadImage.secure_url;
     }
 
     // Create and save the new brand, including the slug
-    const brand = new Brand({
-      brandname,
-      slug: generatedSlug, // 3. Save the slug to the database
+    const newBrand = new Brand({
+      brandname: body.brandname,
+      slug: generateUniqueSlug(body.brandname),
       brandlogo: brandLogoUrl,
-      numberofproducts,
+      numberofproducts: body.numberofproducts,
     });
-    const savedBrand = await brand.save();
+    const savedBrand = await newBrand.save();
 
     // Set success response
     response.success = true;
     response.message = "Brand created successfully";
-    response.data = savedBrand; // Attach the created data
+    response.data = savedBrand;
 
     return res.status(201).json(response);
   } catch (error) {
@@ -102,38 +96,27 @@ export const updateBrand = async (req, res) => {
   let response = { success: false, message: "", errMessage: "" };
 
   try {
-    const currentSlug = req.query.slug; 
-    let updateData = { ...req.body }; // Create a copy of the request body
+    const currentSlug = req.query.slug;
+    let body = req.body || {};
+    let fileBody = req.file;
 
-    if (updateData.slug) {
-        delete updateData.slug;
+    const updatedBrand = {};
+
+    if (body.brandname) {
+      updatedBrand.brandname = body.brandname;
+      updatedBrand.slug = generateUniqueSlug(body.brandname);
     }
 
-    // 1. If the brand name changed, generate a new slug so URLs stay accurate
-    if (updateData.brandname) {
-      updateData.slug = slugify(updateData.brandname, {
-        lower: true,
-        strict: true,
-        trim: true,
-      });
+    if (fileBody) {
+      const normalizedBrand = body.brandname.trim().replace(/[^a-zA-Z0-9]/g, "");
+      const folderPath = `Rainbow-gold/${normalizedBrand}`;
+      const brandLogoUrl = await uploadToCloudinary(fileBody.buffer, folderPath);
+      updatedBrand.brandlogo = brandLogoUrl.secure_url;
     }
 
-    // 2. NEW: Handle Cloudinary image upload for updates
-    if (req.file) {
-      const brandLogoUrl = await uploadToCloudinary(
-        req.file.path,
-        "Rainbow-gold"
-      );
-      updateData.brandlogo = brandLogoUrl; // Add the secure URL to the update object
-    }
+    const updateBrand = await Brand.findOneAndUpdate({ slug: currentSlug }, updatedBrand, { returnDocument: 'after' }, { isDeleted: false });
 
-    // 3. Update the database using the new updateData object
-    const updatedBrand = await Brand.findOneAndUpdate(
-      { slug: currentSlug }, 
-      updateData,
-      { new: true, runValidators: true }
-    );
-
+    
     if (!updatedBrand) {
       response.errMessage = "Brand not found";
       return res.status(404).json(response);
@@ -182,4 +165,16 @@ export const deleteBrand = async (req, res) => {
     response.errMessage = error.message;
     return res.status(500).json(response);
   }
+};
+
+const generateUniqueSlug = (brandName) => {
+      const slug = slugify(brandName, {
+        lower: true,
+        strict: true,
+        trim: true,
+      });
+
+      const unique = new mongoose.Types.ObjectId().toString().slice(-6);
+
+      return `${unique}-${slug}-${unique}`;
 };
