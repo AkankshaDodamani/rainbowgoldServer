@@ -124,7 +124,7 @@ export const updateBrand = async (req, res) => {
 
     response.success = true;
     response.message = "Brand updated successfully";
-    response.data = updatedBrand;
+    response.data = updateBrand;
 
     return res.status(200).json(response);
   } catch (error) {
